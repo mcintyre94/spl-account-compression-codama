@@ -48,8 +48,11 @@ describe('Account Compression', () => {
             skipPreflight: true,
         });
 
-        await provider.connection.confirmTransaction(
-            await provider.connection.requestAirdrop(payer, 1e10),
+        await connection.confirmTransaction(
+            {
+                signature: await connection.requestAirdrop(payer, 1e10),
+                ...(await connection.getLatestBlockhash())
+            },
             'confirmed'
         );
     });
@@ -107,14 +110,14 @@ describe('Account Compression', () => {
             try {
                 await execute(provider, [verifyLeafIx], [payerKeypair]);
                 assert(false, 'Proof should have failed to verify');
-            } catch {}
+            } catch { }
 
             // Replace instruction with same proof fails
             const replaceLeafIx = createReplaceIx(cmt, payer, newLeaf, proof);
             try {
                 await execute(provider, [replaceLeafIx], [payerKeypair]);
                 assert(false, 'Replace should have failed to verify');
-            } catch {}
+            } catch { }
 
             const splCMT = await ConcurrentMerkleTreeAccount.fromAccountAddress(connection, cmtKeypair.publicKey);
             const onChainRoot = splCMT.getCurrentRoot();
@@ -171,8 +174,12 @@ describe('Account Compression', () => {
         const randomSigner = randomSignerKeypair.publicKey;
 
         beforeEach(async () => {
-            await provider.connection.confirmTransaction(
-                await (connection as Connection).requestAirdrop(authority, 1e10)
+            await connection.confirmTransaction(
+                {
+                    signature: await connection.requestAirdrop(authority, 1e10),
+                    ...(await connection.getLatestBlockhash())
+                },
+                'confirmed'
             );
             [cmtKeypair, offChainTree] = await createTreeOnChain(provider, authorityKeypair, 1, DEPTH_SIZE_PAIR);
             cmt = cmtKeypair.publicKey;
@@ -186,7 +193,7 @@ describe('Account Compression', () => {
             try {
                 await execute(provider, [replaceIx], [randomSignerKeypair]);
                 assert(false, 'Transaction should have failed since incorrect authority cannot execute replaces');
-            } catch {}
+            } catch { }
         });
         it('Can transfer authority', async () => {
             const transferAuthorityIx = createTransferAuthorityIx(cmt, authority, randomSigner);
@@ -205,6 +212,14 @@ describe('Account Compression', () => {
             const proof = offChainTree.getProof(replaceIndex);
             const replaceIx = createReplaceIx(cmt, randomSigner, newLeaf, proof);
 
+            // Airdrop the random signer some sol
+            await connection.confirmTransaction(
+                {
+                    signature: await connection.requestAirdrop(randomSigner, 1e10),
+                    ...(await connection.getLatestBlockhash())
+                },
+                'confirmed'
+            );
             await execute(provider, [replaceIx], [randomSignerKeypair]);
         });
     });
@@ -230,9 +245,9 @@ describe('Account Compression', () => {
             }
 
             // Execute all replaces
-            ixArray.map(ix => {
+            for (const ix of ixArray) {
                 txList.push(execute(provider, [ix], [payerKeypair]));
-            });
+            }
             await Promise.all(txList);
 
             leavesToUpdate.map((leaf, index) => {
@@ -282,8 +297,8 @@ describe('Account Compression', () => {
             payerInfo = await provider.connection.getAccountInfo(payer, 'confirmed')!;
             const finalLamports = payerInfo!.lamports;
             assert(
-                finalLamports === payerLamports + treeLamports - 5000,
-                'Expected payer to have received the lamports from the closed tree account'
+                finalLamports === payerLamports + treeLamports - 1_400_000 * 10_000 / 1_000_000 - 5000,
+                'Expected payer to have received the lamports from the closed tree account, received ' + finalLamports
             );
 
             treeInfo = await provider.connection.getAccountInfo(cmt, 'confirmed');
@@ -298,7 +313,7 @@ describe('Account Compression', () => {
             try {
                 await execute(provider, [ix], [payerKeypair]);
                 assert(false, 'Closing a tree account before it is empty should ALWAYS error');
-            } catch (e) {}
+            } catch (e) { }
         });
     });
 
@@ -343,7 +358,7 @@ describe('Account Compression', () => {
             try {
                 await execute(provider, [replaceIx], [payerKeypair]);
                 assert(false, 'Attacker was able to successfully write fake existence of a leaf');
-            } catch (e) {}
+            } catch (e) { }
 
             const splCMT = await ConcurrentMerkleTreeAccount.fromAccountAddress(connection, cmt);
 
@@ -503,7 +518,7 @@ describe('Account Compression', () => {
             try {
                 await execute(provider, [replaceIx], [payerKeypair]);
                 throw Error('This replace instruction should have failed because the leaf index is OOB');
-            } catch (_e) {}
+            } catch (_e) { }
         });
     });
 });

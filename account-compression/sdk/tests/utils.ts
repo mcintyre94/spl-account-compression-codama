@@ -1,5 +1,5 @@
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { Keypair, SendTransactionError, Signer, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { ComputeBudgetProgram, Keypair, sendAndConfirmTransaction, SendTransactionError, Signer, Transaction, TransactionInstruction, sendAndConfirmRawTransaction, Connection } from '@solana/web3.js';
 import * as crypto from 'crypto';
 
 import { createAllocTreeIx, createAppendIx, createInitEmptyMerkleTreeIx, ValidDepthSizePair } from '../src';
@@ -7,7 +7,8 @@ import { MerkleTree } from '../src/merkle-tree';
 
 /// Wait for a transaction of a certain id to confirm and optionally log its messages
 export async function confirmAndLogTx(provider: AnchorProvider, txId: string, verbose = false) {
-    const tx = await provider.connection.confirmTransaction(txId, 'confirmed');
+    const connection = new Connection(provider.connection.rpcEndpoint, 'confirmed');
+    const tx = await connection.confirmTransaction({ signature: txId, ...(await connection.getLatestBlockhash()) }, 'confirmed');
     if (tx.value.err || verbose) {
         console.log((await provider.connection.getTransaction(txId, { commitment: 'confirmed' }))!.meta!.logMessages);
     }
@@ -26,19 +27,34 @@ export async function execute(
     verbose = false
 ): Promise<string> {
     let tx = new Transaction();
+
+    tx = tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
+    tx = tx.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 10_000 }));
+
+    tx.recentBlockhash = (await provider.connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = signers[0].publicKey;
+
+    const connection = new Connection(provider.connection.rpcEndpoint, 'confirmed');
+
     instructions.map(ix => {
         tx = tx.add(ix);
     });
 
+    tx.sign(...signers);
+
     let txid: string | null = null;
     try {
-        txid = await provider.sendAndConfirm!(tx, signers, {
+        txid = await connection.sendRawTransaction(tx.serialize(), {
             skipPreflight,
         });
+        await connection.confirmTransaction({
+            signature: txid,
+            ...(await connection.getLatestBlockhash()),
+        }, 'confirmed');
     } catch (e) {
         if (e instanceof SendTransactionError) {
             console.log('Tx error!', e.logs);
-	}
+        }
         throw e;
     }
 
@@ -76,7 +92,7 @@ export async function createTreeOnChain(
 
     const txId = await execute(provider, ixs, [payer, cmtKeypair]);
     if (canopyDepth) {
-        await confirmAndLogTx(provider, txId as string);
+        await confirmAndLogTx(provider, txId);
     }
 
     if (numLeaves) {
