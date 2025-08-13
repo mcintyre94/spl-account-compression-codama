@@ -2,12 +2,20 @@
 import "zx/globals";
 import {
   accountNode,
+  argumentValueNode,
+  arrayTypeNode,
+  arrayValueNode,
   assertIsNode,
   bottomUpTransformerVisitor,
   bytesTypeNode,
   createFromRoot,
   definedTypeLinkNode,
+  instructionArgumentLinkNode,
+  instructionArgumentNode,
+  instructionNode,
+  instructionRemainingAccountsNode,
   programNode,
+  publicKeyTypeNode,
   remainderCountNode,
   rootNode,
   rootNodeVisitor,
@@ -49,9 +57,8 @@ codama.update(
   bottomUpTransformerVisitor([
     {
       select: "[programNode]splAccountCompression",
-      transform: (node) => {
-        assertIsNode(node, "programNode");
-        return programNode({
+      transform: (node) =>
+        programNode({
           ...node,
           accounts: [
             ...node.accounts,
@@ -76,11 +83,28 @@ codama.update(
               ]),
             }),
           ],
-        });
-      },
+        }),
+    },
+    // Use extra "proof" arg as remaining accounts.
+    {
+      select: "[instructionNode]verifyLeaf",
+      transform: (node) =>
+        instructionNode({
+          ...node,
+          remainingAccounts: instructionRemainingAccountsNode(
+            argumentValueNode("proof"),
+            {
+              isOptional: true,
+            }
+          ),
+        }),
     },
   ])
 );
+
+updateAccountsVisitor({
+  abc: {},
+});
 
 // Render tree.
 writeFileSync(
