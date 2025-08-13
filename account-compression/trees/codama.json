@@ -9,7 +9,51 @@
     "version": "0.2.0",
     "origin": "anchor",
     "docs": [],
-    "accounts": [],
+    "accounts": [
+      {
+        "kind": "accountNode",
+        "name": "merkleTree",
+        "docs": [],
+        "data": {
+          "kind": "structTypeNode",
+          "fields": [
+            {
+              "kind": "structFieldTypeNode",
+              "name": "discriminator",
+              "docs": [],
+              "type": {
+                "kind": "definedTypeLinkNode",
+                "name": "compressionAccountType"
+              }
+            },
+            {
+              "kind": "structTypeNode",
+              "fields": {
+                "name": "treeHeader",
+                "type": {
+                  "kind": "definedTypeLinkNode",
+                  "name": "concurrentMerkleTreeHeaderData"
+                }
+              }
+            },
+            {
+              "kind": "structFieldTypeNode",
+              "name": "serializedTree",
+              "docs": [],
+              "type": {
+                "kind": "sizePrefixTypeNode",
+                "type": {
+                  "kind": "bytesTypeNode"
+                },
+                "prefix": {
+                  "kind": "remainderCountNode"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
     "instructions": [
       {
         "kind": "instructionNode",

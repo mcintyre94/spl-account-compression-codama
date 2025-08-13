@@ -1,9 +1,20 @@
 #!/usr/bin/env zx
 import "zx/globals";
 import {
+  accountNode,
+  assertIsNode,
   bottomUpTransformerVisitor,
+  bytesTypeNode,
   createFromRoot,
+  definedTypeLinkNode,
+  programNode,
+  remainderCountNode,
+  rootNode,
   rootNodeVisitor,
+  sizePrefixTypeNode,
+  structFieldTypeNode,
+  structTypeNode,
+  updateAccountsVisitor,
   updateProgramsVisitor,
 } from "codama";
 import { rootNodeFromAnchor } from "@codama/nodes-from-anchor";
@@ -21,7 +32,7 @@ const codama = createFromRoot(
   )
 );
 
-// Add the program from spl_noop as an additional program
+// Add the program from spl_noop as an additional program.
 const codamaNoopRoot = rootNodeFromAnchor(
   require(path.join(workingDirectory, "sdk", "idl", "spl_noop.json"))
 );
@@ -31,6 +42,44 @@ codama.update(
     ...node,
     additionalPrograms: [...node.additionalPrograms, codamaNoopRoot.program],
   }))
+);
+
+// Custom tree updates.
+codama.update(
+  bottomUpTransformerVisitor([
+    {
+      select: "[programNode]splAccountCompression",
+      transform: (node) => {
+        assertIsNode(node, "programNode");
+        return programNode({
+          ...node,
+          accounts: [
+            ...node.accounts,
+            accountNode({
+              name: "merkleTree",
+              data: structTypeNode([
+                structFieldTypeNode({
+                  name: "discriminator",
+                  type: definedTypeLinkNode("compressionAccountType"),
+                }),
+                structTypeNode({
+                  name: "treeHeader",
+                  type: definedTypeLinkNode("concurrentMerkleTreeHeaderData"),
+                }),
+                structFieldTypeNode({
+                  name: "serializedTree",
+                  type: sizePrefixTypeNode(
+                    bytesTypeNode(),
+                    remainderCountNode()
+                  ),
+                }),
+              ]),
+            }),
+          ],
+        });
+      },
+    },
+  ])
 );
 
 // Render tree.
