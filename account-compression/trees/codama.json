@@ -1123,5 +1123,70 @@
       }
     ]
   },
-  "additionalPrograms": []
+  "additionalPrograms": [
+    {
+      "kind": "programNode",
+      "name": "splNoop",
+      "publicKey": "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV",
+      "version": "0.1.3",
+      "origin": "shank",
+      "docs": [],
+      "accounts": [],
+      "instructions": [
+        {
+          "kind": "instructionNode",
+          "name": "noopInstruction",
+          "docs": [],
+          "optionalAccountStrategy": "programId",
+          "accounts": [],
+          "arguments": [
+            {
+              "kind": "instructionArgumentNode",
+              "name": "discriminator",
+              "defaultValueStrategy": "omitted",
+              "docs": [],
+              "type": {
+                "kind": "fixedSizeTypeNode",
+                "size": 1,
+                "type": {
+                  "kind": "bytesTypeNode"
+                }
+              },
+              "defaultValue": {
+                "kind": "bytesValueNode",
+                "data": "0",
+                "encoding": "base16"
+              }
+            },
+            {
+              "kind": "instructionArgumentNode",
+              "name": "data",
+              "docs": [],
+              "type": {
+                "kind": "sizePrefixTypeNode",
+                "type": {
+                  "kind": "bytesTypeNode"
+                },
+                "prefix": {
+                  "kind": "numberTypeNode",
+                  "format": "u32",
+                  "endian": "le"
+                }
+              }
+            }
+          ],
+          "discriminators": [
+            {
+              "kind": "fieldDiscriminatorNode",
+              "name": "discriminator",
+              "offset": 0
+            }
+          ]
+        }
+      ],
+      "definedTypes": [],
+      "pdas": [],
+      "errors": []
+    }
+  ]
 }
