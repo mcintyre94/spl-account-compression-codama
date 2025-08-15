@@ -1,32 +1,25 @@
 #!/usr/bin/env zx
+// @ts-check
 import "zx/globals";
 import {
   accountNode,
   argumentValueNode,
-  arrayTypeNode,
-  arrayValueNode,
   assertIsNode,
   bottomUpTransformerVisitor,
   bytesTypeNode,
   createFromRoot,
   definedTypeLinkNode,
-  instructionArgumentLinkNode,
-  instructionArgumentNode,
   instructionNode,
   instructionRemainingAccountsNode,
+  prefixedCountNode,
   programNode,
-  publicKeyTypeNode,
   remainderCountNode,
-  rootNode,
   rootNodeVisitor,
-  sizePrefixTypeNode,
   structFieldTypeNode,
   structTypeNode,
-  updateAccountsVisitor,
-  updateProgramsVisitor,
+  unwrapTupleEnumWithSingleStructVisitor,
 } from "codama";
 import { rootNodeFromAnchor } from "@codama/nodes-from-anchor";
-import { renderVisitor as renderJavaScriptVisitor } from "@codama/renderers-js";
 // import { renderVisitor as renderRustVisitor } from "@codama/renderers-rust";
 import { writeFileSync } from "fs";
 import { workingDirectory } from "./utils.mjs";
@@ -57,8 +50,10 @@ codama.update(
   bottomUpTransformerVisitor([
     {
       select: "[programNode]splAccountCompression",
-      transform: (node) =>
-        programNode({
+      transform: (node) => {
+        assertIsNode(node, "programNode");
+
+        return programNode({
           ...node,
           accounts: [
             ...node.accounts,
@@ -69,42 +64,42 @@ codama.update(
                   name: "discriminator",
                   type: definedTypeLinkNode("compressionAccountType"),
                 }),
-                structTypeNode({
+                structFieldTypeNode({
                   name: "treeHeader",
                   type: definedTypeLinkNode("concurrentMerkleTreeHeaderData"),
                 }),
                 structFieldTypeNode({
                   name: "serializedTree",
-                  type: sizePrefixTypeNode(
-                    bytesTypeNode(),
-                    remainderCountNode()
-                  ),
+                  type: bytesTypeNode(),
                 }),
               ]),
             }),
           ],
-        }),
+        });
+      },
     },
     // Use extra "proof" arg as remaining accounts.
     {
       select: "[instructionNode]verifyLeaf",
-      transform: (node) =>
-        instructionNode({
+      transform: (node) => {
+        assertIsNode(node, "instructionNode");
+        return instructionNode({
           ...node,
-          remainingAccounts: instructionRemainingAccountsNode(
-            argumentValueNode("proof"),
-            {
+          remainingAccounts: [
+            instructionRemainingAccountsNode(argumentValueNode("proof"), {
               isOptional: true,
-            }
-          ),
-        }),
+            }),
+          ],
+        });
+      },
     },
   ])
 );
 
-updateAccountsVisitor({
-  abc: {},
-});
+// Transform tuple enum variants to structs.
+codama.update(
+  unwrapTupleEnumWithSingleStructVisitor(["ConcurrentMerkleTreeHeaderData.v1"])
+);
 
 // Render tree.
 writeFileSync(
