@@ -21,6 +21,7 @@ import {
 } from "codama";
 import { rootNodeFromAnchor } from "@codama/nodes-from-anchor";
 // import { renderVisitor as renderRustVisitor } from "@codama/renderers-rust";
+import { renderVisitor as renderJavaScriptVisitor } from "@codama/renderers-js";
 import { writeFileSync } from "fs";
 import { workingDirectory } from "./utils.mjs";
 
@@ -105,4 +106,11 @@ codama.update(
 writeFileSync(
   path.join(workingDirectory, "trees", "codama.json"),
   JSON.stringify(JSON.parse(codama.getJson()), null, 2)
+);
+
+codama.accept(
+  renderJavaScriptVisitor("clients/js/src/generated/", {
+    deleteFolderBeforeRendering: true,
+    formatCode: true,
+  })
 );
