@@ -112,5 +112,6 @@ codama.accept(
   renderJavaScriptVisitor("clients/js/src/generated/", {
     deleteFolderBeforeRendering: true,
     formatCode: true,
+    customAccountData: ["merkleTree"],
   })
 );
