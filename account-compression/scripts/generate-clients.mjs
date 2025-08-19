@@ -108,6 +108,7 @@ writeFileSync(
   JSON.stringify(JSON.parse(codama.getJson()), null, 2)
 );
 
+// Render Javascript client.
 codama.accept(
   renderJavaScriptVisitor("clients/js/src/generated/", {
     deleteFolderBeforeRendering: true,
