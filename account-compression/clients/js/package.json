@@ -1,6 +1,6 @@
 {
-  "name": "@mcintyre94/spl-account-compression",
-  "version": "0.0.2",
+  "name": "@solana-program/spl-account-compression",
+  "version": "1.0.0",
   "description": "JavaScript client for the SPL Account Compression program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
@@ -30,14 +30,14 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcintyre94/spl-account-compression.git"
+    "url": "git+https://github.com/solana-program/account-compression.git"
   },
   "bugs": {
-    "url": "https://github.com/mcintyre94/spl-account-compression/issues"
+    "url": "https://github.com/solana-program/account-compression/issues"
   },
-  "homepage": "https://github.com/mcintyre94/spl-account-compression#readme",
+  "homepage": "https://github.com/solana-program/account-compression#readme",
   "peerDependencies": {
-    "@solana/kit": "^2.1.1"
+    "@solana/kit": "^3.0"
   },
   "devDependencies": {
     "@ava/typescript": "^6.0.0",
@@ -48,7 +48,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@solana-program/token": "^0.5.1"
+    "@solana-program/token": "^0.6.0"
   },
   "ava": {
     "nodeArguments": [
