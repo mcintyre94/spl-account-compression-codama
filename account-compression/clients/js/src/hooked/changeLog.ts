@@ -2,17 +2,11 @@ import {
   Address,
   fixCodecSize,
   FixedSizeCodec,
-  FixedSizeEncoder,
-  fixEncoderSize,
   getAddressCodec,
-  getAddressEncoder,
   getArrayCodec,
-  getArrayEncoder,
   getStructCodec,
-  getStructEncoder,
   getU32Codec,
-  getU32Encoder,
-} from "@solana/kit";
+} from '@solana/kit';
 
 export type ChangeLog = {
   root: Address;
@@ -24,8 +18,8 @@ export type ChangeLogArgs = ChangeLog;
 
 export function getChangeLogCodec(maxDepth: number): FixedSizeCodec<ChangeLog> {
   return getStructCodec([
-    ["root", getAddressCodec()],
-    ["pathNodes", getArrayCodec(getAddressCodec(), { size: maxDepth })],
-    ["index", fixCodecSize(getU32Codec(), 8)],
+    ['root', getAddressCodec()],
+    ['pathNodes', getArrayCodec(getAddressCodec(), { size: maxDepth })],
+    ['index', fixCodecSize(getU32Codec(), 8)],
   ]);
 }

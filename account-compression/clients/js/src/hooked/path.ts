@@ -6,7 +6,7 @@ import {
   getStructCodec,
   getU32Codec,
   transformCodec,
-} from "@solana/kit";
+} from '@solana/kit';
 
 export type Path = {
   proof: Address[];
@@ -19,14 +19,14 @@ export type PathArgs = Path;
 export function getPathCodec(maxDepth: number): FixedSizeCodec<PathArgs, Path> {
   return transformCodec(
     getStructCodec([
-      ["proof", getArrayCodec(getAddressCodec(), { size: maxDepth })],
-      ["leaf", getAddressCodec()],
-      ["index", getU32Codec()],
-      ["padding", getU32Codec()],
+      ['proof', getArrayCodec(getAddressCodec(), { size: maxDepth })],
+      ['leaf', getAddressCodec()],
+      ['index', getU32Codec()],
+      ['padding', getU32Codec()],
     ]),
     (path) => ({ ...path, padding: 0 }),
     (pathWithPadding) => {
-      const { padding, ...path } = pathWithPadding;
+      const { padding: _padding, ...path } = pathWithPadding;
       return path;
     }
   );

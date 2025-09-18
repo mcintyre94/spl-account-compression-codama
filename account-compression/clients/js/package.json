@@ -20,7 +20,11 @@
   ],
   "scripts": {
     "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "lint": "eslint --ext js,ts,tsx src",
+    "lint:fix": "eslint --fix --ext js,ts,tsx src",
+    "format": "prettier --check src",
+    "format:fix": "prettier --write src"
   },
   "publishConfig": {
     "access": "public",
@@ -42,7 +46,12 @@
     "@types/node": "^24.1.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "@solana/eslint-config-solana": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1"
   },
   "dependencies": {
     "@solana-program/token": "^0.6.0"

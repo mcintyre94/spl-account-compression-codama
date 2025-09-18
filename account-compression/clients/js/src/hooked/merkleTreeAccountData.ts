@@ -3,7 +3,6 @@ import {
   combineCodec,
   createDecoder,
   createEncoder,
-  FixedSizeCodec,
   getAddressCodec,
   getArrayCodec,
   getStructCodec,
@@ -12,19 +11,19 @@ import {
   VariableSizeCodec,
   VariableSizeDecoder,
   VariableSizeEncoder,
-} from "@solana/kit";
+} from '@solana/kit';
 import {
   CompressionAccountType,
   ConcurrentMerkleTreeHeaderData,
   ConcurrentMerkleTreeHeaderDataArgs,
   getConcurrentMerkleTreeHeaderDataCodec,
   getConcurrentMerkleTreeHeaderDecoder,
-} from "../generated";
+} from '../generated';
 import {
   ConcurrentMerkleTree,
   ConcurrentMerkleTreeArgs,
   getConcurrentMerkleTreeCodec,
-} from "./concurrentMerkleTree";
+} from './concurrentMerkleTree';
 
 export type MerkleTreeAccountData = {
   discriminator: CompressionAccountType;
@@ -43,7 +42,7 @@ export function getMerkleTreeAccountDataEncoder(): VariableSizeEncoder<MerkleTre
   return createEncoder({
     write(value: MerkleTreeAccountDataArgs, bytes, offset) {
       switch (value.treeHeader.__kind) {
-        case "V1":
+        case 'V1':
           return getMerkleTreeAccountDataV1Codec(
             value.treeHeader.maxDepth,
             value.treeHeader.maxBufferSize
@@ -72,7 +71,7 @@ export function getMerkleTreeAccountDataDecoder(): VariableSizeDecoder<MerkleTre
         offset
       );
       switch (header.__kind) {
-        case "V1":
+        case 'V1':
           return getMerkleTreeAccountDataV1Codec(
             header.maxDepth,
             header.maxBufferSize
@@ -102,10 +101,10 @@ export function getMerkleTreeAccountDataV1Codec(
 ): VariableSizeCodec<MerkleTreeAccountDataArgs, MerkleTreeAccountData> {
   return transformCodec(
     getStructCodec([
-      ["discriminator", getU8Codec()],
-      ["treeHeader", getConcurrentMerkleTreeHeaderDataCodec()],
-      ["tree", getConcurrentMerkleTreeCodec(maxDepth, maxBufferSize)],
-      ["canopy", getArrayCodec(getAddressCodec())],
+      ['discriminator', getU8Codec()],
+      ['treeHeader', getConcurrentMerkleTreeHeaderDataCodec()],
+      ['tree', getConcurrentMerkleTreeCodec(maxDepth, maxBufferSize)],
+      ['canopy', getArrayCodec(getAddressCodec())],
     ]),
     (value: MerkleTreeAccountDataArgs) => ({
       ...value,
